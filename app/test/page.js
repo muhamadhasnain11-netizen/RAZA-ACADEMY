@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Header, Footer } from "../../components/Chrome";
 import { QUESTIONS, SECONDS_PER_Q, PASS_NUM, PASS_DEN } from "../../lib/questions";
 import { waLink } from "../../lib/config";
+import { supabase } from "../../lib/supabase";
+import Link from "next/link";
 
 const shuffle = (a) => {
   const b = [...a];
@@ -21,6 +23,7 @@ export default function TestPage() {
   const [pick, setPick] = useState({});
   const [flag, setFlag] = useState({});
   const [left, setLeft] = useState(0);
+  const [saved, setSaved] = useState("");
 
   useEffect(() => {
     if (phase !== "run") return;
@@ -32,11 +35,23 @@ export default function TestPage() {
     if (phase === "run" && left <= 0) setPhase("done");
   }, [left, phase]);
 
+  useEffect(() => {
+    if (phase !== "done") return;
+    const score = qs.filter((q, k) => pick[k] === q.a).length;
+    const need = Math.ceil((qs.length * PASS_NUM) / PASS_DEN - 1e-9);
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) { setSaved("login"); return; }
+      const { error } = await supabase.from("results").insert({ user_id: data.user.id, score, total: qs.length, passed: score >= need, answers: pick });
+      setSaved(error ? "error" : "saved");
+    })();
+  }, [phase]);
+
   const start = () => {
     const s = shuffle(QUESTIONS);
     setQs(s); setI(0); setPick({}); setFlag({});
     setLeft(Math.round(s.length * SECONDS_PER_Q));
-    setPhase("run");
+    setSaved(""); setPhase("run");
   };
 
   const finish = () => {
@@ -90,6 +105,9 @@ export default function TestPage() {
       <div className="card">
         <h3>{left <= 0 ? "Time\u2019s up. " : ""}You scored {score} out of {qs.length}</h3>
         <p className="verdict">{pass ? "Pass. You are above the 86% pass mark." : `Not yet. You need ${need} out of ${qs.length}, the same 86% as the real test.`}</p>
+        {saved === "saved" && <p>Score saved to your progress.</p>}
+        {saved === "login" && <p><Link href="/login">Log in or create an account</Link> to save your scores and track your progress.</p>}
+        {saved === "error" && <p>We could not save this score. Try again later.</p>}
         {qs.map((q, k) => {
           const ok = pick[k] === q.a;
           return (

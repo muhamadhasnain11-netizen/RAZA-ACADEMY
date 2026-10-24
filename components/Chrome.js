@@ -6,7 +6,10 @@ export function Header() {
     <header>
       <div className="wrap bar">
         <Link href="/" className="brand">RAZA<small>THEORY &amp; DRIVING ACADEMY</small></Link>
-        <a className="btn" href={waLink(BOOK_MSG)} target="_blank" rel="noopener noreferrer">Book on WhatsApp</a>
+        <div className="row" style={{ margin: 0 }}>
+          <Link className="btn ghost" href="/dashboard">My progress</Link>
+          <a className="btn" href={waLink(BOOK_MSG)} target="_blank" rel="noopener noreferrer">Book on WhatsApp</a>
+        </div>
       </div>
     </header>
   );
