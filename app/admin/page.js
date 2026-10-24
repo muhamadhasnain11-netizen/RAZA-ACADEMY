@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Header, Footer } from "../../components/Chrome";
 import { supabase } from "../../lib/supabase";
 
+const waNum = (p) => { const d = p.replace(/\D/g, ""); return d.startsWith("0") ? "44" + d.slice(1) : d; };
+
 const blank = { id: null, topic: "", question: "", options: ["", "", "", ""], correct: 0, explanation: "" };
 
 export default function Admin() {
@@ -13,11 +15,20 @@ export default function Admin() {
   const [rows, setRows] = useState([]);
   const [f, setF] = useState(blank);
   const [msg, setMsg] = useState("");
+  const [bk, setBk] = useState([]);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("questions").select("*").order("id");
     setRows(data || []);
+    const b = await supabase.from("bookings").select("*").order("id", { ascending: false });
+    setBk(b.data || []);
   }, []);
+
+  const setStatus = async (b, status) => { await supabase.from("bookings").update({ status }).eq("id", b.id); load(); };
+  const delBk = async (b) => {
+    if (!window.confirm("Delete this booking request?")) return;
+    await supabase.from("bookings").delete().eq("id", b.id); load();
+  };
 
   useEffect(() => {
     (async () => {
@@ -62,7 +73,21 @@ export default function Admin() {
     <>
       <Header />
       <section className="sec"><div className="wrap">
-        <h1 className="h2">Question bank</h1>
+        <h1 className="h2">Booking requests</h1>
+        {bk.length === 0 && <p>No requests yet.</p>}
+        {bk.map((b) => (
+          <div key={b.id} className={`rev ${b.status === "confirmed" ? "ok" : "bad"}`}>
+            <p style={{ fontWeight: 600 }}>{b.name}, {b.session_type} ({b.status === "confirmed" ? "Confirmed" : "New"})</p>
+            <p>{b.preferred_time.replace("T", " ")}, phone {b.phone}{b.email ? ", " + b.email : ""}</p>
+            {b.note && <p className="why">{b.note}</p>}
+            <div className="row" style={{ marginTop: 6 }}>
+              <a className="btn" target="_blank" rel="noopener noreferrer" href={`https://wa.me/${waNum(b.phone)}?text=${encodeURIComponent(`Hi ${b.name}, this is Raza Theory & Driving Academy about your ${b.session_type} request.`)}`}>Reply on WhatsApp</a>
+              {b.status !== "confirmed" && <button className="btn ghost" onClick={() => setStatus(b, "confirmed")}>Mark confirmed</button>}
+              <button className="btn ghost" onClick={() => delBk(b)}>Delete</button>
+            </div>
+          </div>
+        ))}
+        <h1 className="h2" style={{ marginTop: 48 }}>Question bank</h1>
         <form className="card" onSubmit={save}>
           <h3>{f.id ? "Edit question" : "Add a question"}</h3>
           <label>Topic (optional)<input value={f.topic} onChange={(e) => setF({ ...f, topic: e.target.value })} /></label>

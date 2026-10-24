@@ -11,7 +11,7 @@ export default function Home() {
           <h1>Pass your UK theory test <em>first time.</em></h1>
           <p className="lead">Join our live mock tests on TikTok, then fix your weak spots in a private session with a fully qualified, patient instructor.</p>
           <div className="row">
-            <a className="btn" href={waLink(BOOK_MSG)} target="_blank" rel="noopener noreferrer">Book a private session</a>
+            <Link className="btn" href="/book">Book a private session</Link>
             <Link className="btn ghost" href="/test">Try the free mock test</Link>
           </div>
         </div>
