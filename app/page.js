@@ -2,6 +2,13 @@ import Link from "next/link";
 import { Header, Footer } from "../components/Chrome";
 import { waLink, BOOK_MSG } from "../lib/config";
 
+const PASSES = [
+  { name: "Raman", when: "June 2025" },
+  { name: "Kiranjeet K.", when: "June 2025" },
+  { name: "Ees Ur R.", when: "" },
+  { name: "Harpreet S.", when: "" },
+];
+
 export default function Home() {
   return (
     <>
@@ -24,6 +31,21 @@ export default function Home() {
             <li>Special discount on bundles</li>
           </ul>
         </aside>
+      </section>
+      <section className="sec">
+        <div className="wrap">
+          <h2>Recent passes</h2>
+          <p className="lead" style={{ marginTop: 0 }}>Students who passed their practical driving test with us.</p>
+          <div className="passes">
+            {PASSES.map((p) => (
+              <div key={p.name} className="pass">
+                <strong>{p.name}</strong>
+                <span>Passed the practical driving test</span>
+                {p.when && <span className="when">{p.when}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
       <section className="sec cta">
         <div className="wrap">

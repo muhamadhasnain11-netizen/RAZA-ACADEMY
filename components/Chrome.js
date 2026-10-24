@@ -5,7 +5,7 @@ export function Header() {
   return (
     <header>
       <div className="wrap bar">
-        <Link href="/" className="brand">RAZA<small>THEORY &amp; DRIVING ACADEMY</small></Link>
+        <Link href="/" aria-label="Raza Theory & Driving Academy, home"><img className="logo" src="/logo.jpg" alt="Raza Theory & Driving Academy" /></Link>
         <div className="row" style={{ margin: 0 }}>
           <Link className="btn ghost" href="/dashboard">My progress</Link>
           <Link className="btn" href="/book">Book a session</Link>
