@@ -24,6 +24,13 @@ export default function TestPage() {
   const [flag, setFlag] = useState({});
   const [left, setLeft] = useState(0);
   const [saved, setSaved] = useState("");
+  const [bank, setBank] = useState(QUESTIONS);
+
+  useEffect(() => {
+    supabase.from("questions").select("*").order("id").then(({ data }) => {
+      if (data && data.length) setBank(data.map((r) => ({ q: r.question, o: r.options, a: r.correct_index, e: r.explanation || "" })));
+    });
+  }, []);
 
   useEffect(() => {
     if (phase !== "run") return;
@@ -48,7 +55,7 @@ export default function TestPage() {
   }, [phase]);
 
   const start = () => {
-    const s = shuffle(QUESTIONS);
+    const s = shuffle(bank).slice(0, 50);
     setQs(s); setI(0); setPick({}); setFlag({});
     setLeft(Math.round(s.length * SECONDS_PER_Q));
     setSaved(""); setPhase("run");
@@ -65,7 +72,7 @@ export default function TestPage() {
     body = (
       <div className="card">
         <p style={{ marginTop: 0 }}>
-          {QUESTIONS.length} practice questions, {Math.round((QUESTIONS.length * SECONDS_PER_Q) / 60)} minutes, same pace and 86% pass mark as the real test. You can flag questions and jump between them. Explanations show at the end.
+          {Math.min(bank.length, 50)} practice questions, {Math.round((Math.min(bank.length, 50) * SECONDS_PER_Q) / 60)} minutes, same pace and 86% pass mark as the real test. You can flag questions and jump between them. Explanations show at the end.
         </p>
         <button className="btn" onClick={start}>Start the test</button>
       </div>

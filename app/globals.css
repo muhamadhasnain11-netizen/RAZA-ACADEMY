@@ -56,3 +56,5 @@ footer{padding:22px 0;color:var(--mute);font-size:14px;text-align:center}
 .bar{flex-wrap:wrap}
 label{display:block;font-weight:600;margin-bottom:14px}
 input{display:block;width:100%;margin-top:6px;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;min-height:48px}
+textarea,select{display:block;width:100%;margin-top:6px;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:84px}
