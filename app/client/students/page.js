@@ -6,6 +6,7 @@ import { Header, Footer } from "../../../components/Chrome";
 import { PortalNav } from "../../../components/PortalNav";
 import { supabase } from "../../../lib/supabase";
 import { LESSONS, pct, currentLesson, fdate, topicTotals } from "../../../lib/lessons";
+import { summary } from "../../../lib/game";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -64,7 +65,7 @@ export default function Students() {
   const p = sel && d.profiles.find((x) => x.id === sel);
 
   if (p) {
-    const s = stat(sel), cur = currentLesson(s.done), topics = topicTotals(s.rs);
+    const s = stat(sel), cur = currentLesson(s.done), topics = topicTotals(s.rs), g = summary({ results: s.rs, logs: s.lg, done: s.done });
     return (
       <>
         <Header />
@@ -76,7 +77,8 @@ export default function Students() {
             <p style={{ marginTop: 0 }}>{p.email}, joined {fdate(p.created_at)}</p>
             <p className="verdict">{s.rs.length} tests taken, best {s.best}%, {s.rs.filter((r) => r.passed).length} passed. {s.lg.length} classes taken, {s.done.size} of {LESSONS.length} lessons done.</p>
             <div className="meter"><i style={{ width: Math.round((s.done.size / LESSONS.length) * 100) + "%" }} /></div>
-            <p style={{ marginBottom: 0 }}>{cur < 0 ? "All lessons complete." : `Current lesson ${cur + 1}: ${LESSONS[cur].title}`}</p>
+            <p>{cur < 0 ? "All lessons complete." : `Current lesson ${cur + 1}: ${LESSONS[cur].title}`}</p>
+            <p className="why" style={{ marginBottom: 0 }}>Level {g.level.index + 1}, {g.level.name}. {g.points} points, {g.streak.current} day streak, {g.earned.length} badges.</p>
           </div>
 
           <h3 className="sub">Lessons (tick when done)</h3>
@@ -145,10 +147,11 @@ export default function Students() {
         <p className="verdict">{d.profiles.length} students</p>
         {list.map((x) => {
           const s = stat(x.id);
+          const g = summary({ results: s.rs, logs: s.lg, done: s.done });
           return (
             <div key={x.id} className="rev ok">
               <p style={{ fontWeight: 600 }}>{nm(x)}</p>
-              <p className="why">{s.rs.length} tests, best {s.best}%, {s.lg.length} classes, {s.done.size} of {LESSONS.length} lessons done</p>
+              <p className="why">{s.rs.length} tests, best {s.best}%, {s.lg.length} classes, {s.done.size} of {LESSONS.length} lessons done, level {g.level.index + 1}, {g.points} points</p>
               <button className="btn ghost" style={{ marginTop: 6 }} onClick={() => { setSel(x.id); window.scrollTo({ top: 0 }); }}>Open file</button>
             </div>
           );

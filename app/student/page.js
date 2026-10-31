@@ -2,11 +2,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Trophy, Flame, Award, ClipboardCheck, Target, Car, BookOpen, BarChart3, ClipboardList, LogOut, CalendarCheck } from "lucide-react";
 import { Header, Footer } from "../../components/Chrome";
+import { Ring } from "../../components/Ring";
+import { BadgeGrid } from "../../components/Badges";
 import { supabase } from "../../lib/supabase";
 import { LESSONS, pct, currentLesson, fdate, topicTotals } from "../../lib/lessons";
+import { BADGES, summary, readiness } from "../../lib/game";
 
-const TABS = [["lessons", "Lessons"], ["classes", "Classes"], ["topics", "Topics"], ["tests", "Tests"]];
+const TABS = [["lessons", "Lessons", BookOpen], ["classes", "Classes", Car], ["topics", "Topics", BarChart3], ["tests", "Tests", ClipboardList], ["badges", "Badges", Award]];
 
 export default function StudentPortal() {
   const router = useRouter();
@@ -35,26 +39,48 @@ export default function StudentPortal() {
   const cur = currentLesson(done);
   const best = results.length ? Math.max(...results.map(pct)) : 0;
   const topics = topicTotals(results);
+  const g = summary({ results, logs, done });
+  const ready = readiness(results);
+  const tiles = [[ClipboardCheck, results.length, "Tests taken"], [Target, best + "%", "Best score"], [Car, logs.length, "Classes taken"], [BookOpen, `${done.size}/${LESSONS.length}`, "Lessons done"]];
 
   return (
     <>
       <Header />
       <section className="sec"><div className="wrap">
         <div className="portalbar"><p className="portal-title">Student portal</p></div>
-        <div className="card">
-          <p style={{ marginTop: 0 }}>{name ? name + ", " : ""}signed in as {user.email}</p>
-          <p className="verdict">{results.length} tests taken, best {best}%, {results.filter((r) => r.passed).length} passed. {logs.length} classes taken, {done.size} of {LESSONS.length} lessons done.</p>
+
+        <div className="hero-card">
+          <Ring value={ready} sub="pass ready" />
+          <div className="hc-main">
+            <p className="hc-name">{name || user.email}</p>
+            <p className="level"><Trophy size={20} aria-hidden="true" />Level {g.level.index + 1}: {g.level.name}</p>
+            <div className="meter"><i style={{ width: g.level.pct + "%" }} /></div>
+            <p className="why">{g.points} points{g.level.next ? `, ${g.level.toNext} more to reach ${g.level.next}` : ", top level reached"}</p>
+            <div className="chips">
+              <span className="chip"><Flame size={16} aria-hidden="true" />{g.streak.current} day streak</span>
+              <span className="chip"><Award size={16} aria-hidden="true" />{g.earned.length} of {BADGES.length} badges</span>
+            </div>
+          </div>
+        </div>
+        <p className="verdict">{results.length === 0 ? "Take your first mock test to see how ready you are." : ready >= 86 ? "You are scoring above the pass mark. Time to book your real test!" : ready >= 70 ? "Nearly there. Keep practising your weak topics." : "Keep practising. Every test gets you closer."}</p>
+
+        <div className="stats">
+          {tiles.map(([Icon, n, l]) => <div key={l} className="stat"><span className="ico"><Icon size={20} aria-hidden="true" /></span><b>{n}</b>{l}</div>)}
+        </div>
+
+        <div className="card" style={{ marginTop: 18 }}>
+          <p className="verdict" style={{ marginTop: 0 }}>Your next step</p>
+          <p>{cur < 0 ? "All lessons complete. Well done!" : `Lesson ${cur + 1}: ${LESSONS[cur].title}`}</p>
           <div className="meter"><i style={{ width: Math.round((done.size / LESSONS.length) * 100) + "%" }} /></div>
-          <p>{cur < 0 ? "All lessons complete. Well done!" : `You are on lesson ${cur + 1}: ${LESSONS[cur].title}`}</p>
           <div className="row">
-            <Link className="btn" href="/test">Take a mock test</Link>
-            <Link className="btn ghost" href="/book">Book a session</Link>
-            <button className="btn ghost" onClick={logout}>Log out</button>
+            <Link className="btn" href="/test"><ClipboardCheck size={18} aria-hidden="true" />Take a mock test</Link>
+            <Link className="btn ghost" href="/book"><CalendarCheck size={18} aria-hidden="true" />Book a session</Link>
+            <button className="btn ghost" onClick={logout}><LogOut size={18} aria-hidden="true" />Log out</button>
           </div>
         </div>
 
         <nav className="tabs" style={{ marginTop: 24 }} aria-label="Student portal">
-          {TABS.map(([k, l]) => <button key={k} className={`tab ${tab === k ? "on" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
+          {TABS.map(([k, l, Icon]) => <button key={k} className={`tab ${tab === k ? "on" : ""}`} onClick={() => setTab(k)}><Icon size={18} aria-hidden="true" />{l}</button>)}
         </nav>
 
         {tab === "lessons" && LESSONS.map((l, i) => (
@@ -65,7 +91,7 @@ export default function StudentPortal() {
         ))}
 
         {tab === "classes" && (<>
-          {logs.length === 0 && <p>No classes logged yet.</p>}
+          {logs.length === 0 && <p>No classes logged yet. Book a session and your instructor will log it here.</p>}
           {logs.map((c) => (
             <div key={c.id} className="rev ok">
               <p style={{ fontWeight: 600 }}>{fdate(c.taken_on)}, {c.lesson || "Class"}</p>
@@ -92,6 +118,11 @@ export default function StudentPortal() {
               <p className="why">{fdate(r.taken_at)}</p>
             </div>
           ))}
+        </>)}
+
+        {tab === "badges" && (<>
+          <BadgeGrid earned={g.earned} />
+          <p className="why" style={{ marginTop: 14 }}>How points work: 10 per test, 1 per correct answer, 50 for a pass, 25 per lesson finished and 15 per class attended.</p>
         </>)}
       </div></section>
       <Footer />

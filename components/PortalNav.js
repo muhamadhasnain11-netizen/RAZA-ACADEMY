@@ -1,13 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, Users, CalendarCheck, FileQuestion, Trophy, LogOut } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 const TABS = [
-  ["/client", "Overview"],
-  ["/client/students", "Students"],
-  ["/client/bookings", "Bookings"],
-  ["/client/questions", "Question bank"],
+  ["/client", "Overview", LayoutDashboard],
+  ["/client/students", "Students", Users],
+  ["/client/bookings", "Bookings", CalendarCheck],
+  ["/client/questions", "Question bank", FileQuestion],
+  ["/client/leaderboard", "Leaderboard", Trophy],
 ];
 
 export function PortalNav() {
@@ -18,10 +20,10 @@ export function PortalNav() {
     <div className="portalbar">
       <p className="portal-title">Client portal</p>
       <nav className="tabs" aria-label="Client portal">
-        {TABS.map(([href, label]) => (
-          <Link key={href} href={href} className={`tab ${path === href ? "on" : ""}`}>{label}</Link>
+        {TABS.map(([href, label, Icon]) => (
+          <Link key={href} href={href} className={`tab ${path === href ? "on" : ""}`}><Icon size={18} aria-hidden="true" />{label}</Link>
         ))}
-        <button className="tab" onClick={logout}>Log out</button>
+        <button className="tab" onClick={logout}><LogOut size={18} aria-hidden="true" />Log out</button>
       </nav>
     </div>
   );

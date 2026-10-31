@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GraduationCap, Briefcase } from "lucide-react";
 import { BRAND, PHONE_DISPLAY, waLink, BOOK_MSG } from "../lib/config";
 
 export function Header() {
@@ -7,8 +8,8 @@ export function Header() {
       <div className="wrap bar">
         <Link href="/" aria-label="Raza Theory & Driving Academy, home"><img className="logo" src="/logo.jpg" alt="Raza Theory & Driving Academy" /></Link>
         <div className="row" style={{ margin: 0 }}>
-          <Link className="btn ghost" href="/student">Student portal</Link>
-          <Link className="btn ghost" href="/client">Client portal</Link>
+          <Link className="btn ghost" href="/student"><GraduationCap size={18} aria-hidden="true" />Student portal</Link>
+          <Link className="btn ghost" href="/client"><Briefcase size={18} aria-hidden="true" />Client portal</Link>
           <Link className="btn" href="/book">Book a session</Link>
         </div>
       </div>
