@@ -28,7 +28,7 @@ export default function TestPage() {
 
   useEffect(() => {
     supabase.from("questions").select("*").order("id").then(({ data }) => {
-      if (data && data.length) setBank(data.map((r) => ({ q: r.question, o: r.options, a: r.correct_index, e: r.explanation || "" })));
+      if (data && data.length) setBank(data.map((r) => ({ q: r.question, o: r.options, a: r.correct_index, e: r.explanation || "", t: r.topic || "General" })));
     });
   }, []);
 
@@ -46,10 +46,17 @@ export default function TestPage() {
     if (phase !== "done") return;
     const score = qs.filter((q, k) => pick[k] === q.a).length;
     const need = Math.ceil((qs.length * PASS_NUM) / PASS_DEN - 1e-9);
+    const topics = {};
+    qs.forEach((q, k) => {
+      const t = q.t || "General";
+      topics[t] = topics[t] || { right: 0, total: 0 };
+      topics[t].total++;
+      if (pick[k] === q.a) topics[t].right++;
+    });
     (async () => {
       const { data } = await supabase.auth.getUser();
       if (!data.user) { setSaved("login"); return; }
-      const { error } = await supabase.from("results").insert({ user_id: data.user.id, score, total: qs.length, passed: score >= need, answers: pick });
+      const { error } = await supabase.from("results").insert({ user_id: data.user.id, score, total: qs.length, passed: score >= need, answers: topics });
       setSaved(error ? "error" : "saved");
     })();
   }, [phase]);

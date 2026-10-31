@@ -73,7 +73,8 @@ export default function Admin() {
     <>
       <Header />
       <section className="sec"><div className="wrap">
-        <h1 className="h2">Booking requests</h1>
+        <div className="row" style={{ marginTop: 0 }}><Link className="btn" href="/admin/students">Students</Link></div>
+        <h1 className="h2" style={{ marginTop: 24 }}>Booking requests</h1>
         {bk.length === 0 && <p>No requests yet.</p>}
         {bk.map((b) => (
           <div key={b.id} className={`rev ${b.status === "confirmed" ? "ok" : "bad"}`}>
