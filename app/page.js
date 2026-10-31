@@ -32,6 +32,27 @@ export default function Home() {
           </ul>
         </aside>
       </section>
+      <section className="sec" id="prices">
+        <div className="wrap">
+          <h2>Courses and prices</h2>
+          <p className="lead" style={{ marginTop: 0 }}>Every course runs for four weeks, Monday to Friday.</p>
+          <div className="plans">
+            <div className="plan hot">
+              <span className="tag">50% off right now</span>
+              <h3>Group course</h3>
+              <p className="price"><s>£150</s> £75</p>
+              <p>Four weeks of theory test preparation in a group. Saturday and Sunday are off.</p>
+              <Link className="btn" href="/book">Book the group course</Link>
+            </div>
+            <div className="plan">
+              <h3>1-to-1 course</h3>
+              <p className="price">£300</p>
+              <p>Four weeks of private, one-to-one theory test preparation with your instructor. Saturday and Sunday are off.</p>
+              <Link className="btn" href="/book">Book the 1-to-1 course</Link>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="sec">
         <div className="wrap">
           <h2>Recent passes</h2>

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Header, Footer } from "../../../components/Chrome";
+import { PortalHeader, Footer } from "../../../components/Chrome";
 import { PortalNav } from "../../../components/PortalNav";
 import { supabase } from "../../../lib/supabase";
 
@@ -34,7 +34,7 @@ export default function Admin() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) { router.replace("/login"); return; }
+      if (!data.user) { router.replace("/client/login"); return; }
       const a = await supabase.from("admins").select("email").maybeSingle();
       if (a.data) { setOk(true); load(); } else setOk(false);
     })();
@@ -62,9 +62,9 @@ export default function Admin() {
     if (error) setMsg(error.message); else { setMsg("Question deleted."); load(); }
   };
 
-  if (ok === null) return (<><Header /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
+  if (ok === null) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
   if (!ok) return (
-    <><Header /><section className="sec"><div className="wrap">
+    <><PortalHeader kind="client" /><section className="sec"><div className="wrap">
       <h1 className="h2">Admins only</h1>
       <div className="card"><p style={{ marginTop: 0 }}>This page is for academy admins. Ask the owner to add your email.</p><Link className="btn" href="/">Back to the site</Link></div>
     </div></section><Footer /></>
@@ -72,7 +72,7 @@ export default function Admin() {
 
   return (
     <>
-      <Header />
+      <PortalHeader kind="client" />
       <section className="sec"><div className="wrap">
         <PortalNav />
         <h1 className="h2" style={{ marginTop: 24 }}>Booking requests</h1>

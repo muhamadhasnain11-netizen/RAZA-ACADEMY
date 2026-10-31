@@ -4,7 +4,7 @@ import { Header, Footer } from "../../components/Chrome";
 import { supabase } from "../../lib/supabase";
 import { waLink } from "../../lib/config";
 
-const TYPES = ["Private theory session", "Driving lesson, manual", "Driving lesson, automatic", "Bundle, theory and driving"];
+const TYPES = ["Group theory course, 4 weeks (£75)", "1-to-1 theory course, 4 weeks (£300)", "Driving lessons, manual", "Driving lessons, automatic", "Bundle, theory and driving"];
 
 export default function Book() {
   const [f, setF] = useState({ name: "", phone: "", email: "", type: TYPES[0], time: "", note: "", website: "" });
@@ -27,7 +27,8 @@ export default function Book() {
     <>
       <Header />
       <section className="sec"><div className="wrap">
-        <h1 className="h2">Book a session</h1>
+        <h1 className="h2">Book a course</h1>
+        <p className="lead" style={{ marginTop: 0 }}>Group course £75 (50% off, was £150) or 1-to-1 course £300. Both run for four weeks, Monday to Friday. We confirm your start date and payment on WhatsApp.</p>
         {state === "sent" ? (
           <div className="card">
             <h3>Request sent</h3>

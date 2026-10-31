@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Header, Footer } from "../../../components/Chrome";
+import { PortalHeader, Footer } from "../../../components/Chrome";
 import { PortalNav } from "../../../components/PortalNav";
 import { supabase } from "../../../lib/supabase";
 import { LESSONS, pct, currentLesson, fdate, topicTotals } from "../../../lib/lessons";
@@ -32,7 +32,7 @@ export default function Students() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) { router.replace("/login"); return; }
+      if (!data.user) { router.replace("/client/login"); return; }
       const a = await supabase.from("admins").select("email").maybeSingle();
       if (a.data) { setOk(true); load(); } else setOk(false);
     })();
@@ -59,8 +59,8 @@ export default function Students() {
     await supabase.from("class_logs").delete().eq("id", c.id); load();
   };
 
-  if (ok === null) return (<><Header /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
-  if (!ok) return (<><Header /><section className="sec"><div className="wrap"><h1 className="h2">Admins only</h1><Link className="btn" href="/">Back to the site</Link></div></section><Footer /></>);
+  if (ok === null) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
+  if (!ok) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><h1 className="h2">Admins only</h1><Link className="btn" href="/">Back to the site</Link></div></section><Footer /></>);
 
   const p = sel && d.profiles.find((x) => x.id === sel);
 
@@ -68,7 +68,7 @@ export default function Students() {
     const s = stat(sel), cur = currentLesson(s.done), topics = topicTotals(s.rs), g = summary({ results: s.rs, logs: s.lg, done: s.done });
     return (
       <>
-        <Header />
+        <PortalHeader kind="client" />
         <section className="sec"><div className="wrap">
           <PortalNav />
           <button className="btn ghost" onClick={() => { setSel(null); setMsg(""); }}>All students</button>
@@ -139,7 +139,7 @@ export default function Students() {
   const list = d.profiles.filter((x) => nm(x).toLowerCase().includes(q.toLowerCase()));
   return (
     <>
-      <Header />
+      <PortalHeader kind="client" />
       <section className="sec"><div className="wrap">
         <PortalNav />
         <h1 className="h2" style={{ marginTop: 18 }}>Students</h1>

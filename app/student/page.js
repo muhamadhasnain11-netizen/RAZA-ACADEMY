@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trophy, Flame, Award, ClipboardCheck, Target, Car, BookOpen, BarChart3, ClipboardList, LogOut, CalendarCheck } from "lucide-react";
-import { Header, Footer } from "../../components/Chrome";
+import { PortalHeader, Footer } from "../../components/Chrome";
+import { fmtUK } from "../../lib/time";
 import { Ring } from "../../components/Ring";
 import { BadgeGrid } from "../../components/Badges";
 import { supabase } from "../../lib/supabase";
@@ -20,22 +21,23 @@ export default function StudentPortal() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) { router.replace("/login"); return; }
+      if (!data.user) { router.replace("/student/login"); return; }
       const id = data.user.id;
-      const [r, c, l, p] = await Promise.all([
+      const [r, c, l, p, s] = await Promise.all([
         supabase.from("results").select("*").eq("user_id", id).order("taken_at", { ascending: false }),
         supabase.from("class_logs").select("*").eq("student_id", id).order("taken_on", { ascending: false }),
         supabase.from("lesson_progress").select("lesson").eq("student_id", id),
         supabase.from("profiles").select("full_name").eq("id", id).maybeSingle(),
+        supabase.from("sessions").select("*, classes(name)").gte("starts_at", new Date().toISOString()).order("starts_at").limit(5),
       ]);
-      setD({ user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "" });
+      setD({ upcoming: s.data || [], user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "" });
     })();
   }, [router]);
 
   const logout = async () => { await supabase.auth.signOut(); router.push("/"); };
-  if (!d) return (<><Header /><section className="sec"><div className="wrap"><p>Loading your portal...</p></div></section></>);
+  if (!d) return (<><PortalHeader kind="student" /><section className="sec"><div className="wrap"><p>Loading your portal...</p></div></section></>);
 
-  const { user, results, logs, done, name } = d;
+  const { user, results, logs, done, name, upcoming } = d;
   const cur = currentLesson(done);
   const best = results.length ? Math.max(...results.map(pct)) : 0;
   const topics = topicTotals(results);
@@ -45,7 +47,7 @@ export default function StudentPortal() {
 
   return (
     <>
-      <Header />
+      <PortalHeader kind="student" />
       <section className="sec"><div className="wrap">
         <div className="portalbar"><p className="portal-title">Student portal</p></div>
 
@@ -79,6 +81,13 @@ export default function StudentPortal() {
           </div>
         </div>
 
+        {upcoming.length > 0 && (
+          <div className="card" style={{ marginTop: 18 }}>
+            <p className="verdict" style={{ marginTop: 0 }}>Upcoming classes (UK time)</p>
+            {upcoming.map((u) => <p key={u.id} style={{ margin: "4px 0" }}>{fmtUK(u.starts_at)}, {u.classes ? u.classes.name : "Class"}{u.lesson_title ? ", " + u.lesson_title : ""}</p>)}
+          </div>
+        )}
+
         <nav className="tabs" style={{ marginTop: 24 }} aria-label="Student portal">
           {TABS.map(([k, l, Icon]) => <button key={k} className={`tab ${tab === k ? "on" : ""}`} onClick={() => setTab(k)}><Icon size={18} aria-hidden="true" />{l}</button>)}
         </nav>
@@ -86,7 +95,7 @@ export default function StudentPortal() {
         {tab === "lessons" && LESSONS.map((l, i) => (
           <div key={l.key} className={`rev ${done.has(l.key) ? "ok" : i === cur ? "bad" : ""}`}>
             <p style={{ fontWeight: 600 }}>{i + 1}. {l.title}</p>
-            <p className="why">{done.has(l.key) ? "Done" : i === cur ? "Current lesson" : "Not started"}</p>
+            <p className="why">{done.has(l.key) ? "Done" : i === cur ? "Next to cover" : "To cover"}</p>
           </div>
         ))}
 

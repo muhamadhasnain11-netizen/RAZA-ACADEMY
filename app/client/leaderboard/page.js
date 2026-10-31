@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Crown, Flame, Award, Maximize2 } from "lucide-react";
-import { Header, Footer } from "../../../components/Chrome";
+import { PortalHeader, Footer } from "../../../components/Chrome";
 import { PortalNav } from "../../../components/PortalNav";
 import { supabase } from "../../../lib/supabase";
 import { summary } from "../../../lib/game";
@@ -22,7 +22,7 @@ export default function Leaderboard() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) { router.replace("/login"); return; }
+      if (!data.user) { router.replace("/client/login"); return; }
       const a = await supabase.from("admins").select("email").maybeSingle();
       if (!a.data) { setOk(false); return; }
       setOk(true);
@@ -42,12 +42,12 @@ export default function Leaderboard() {
     })();
   }, [router]);
 
-  if (ok === false) return (<><Header /><section className="sec"><div className="wrap"><h1 className="h2">Admins only</h1><Link className="btn" href="/">Back to the site</Link></div></section><Footer /></>);
-  if (ok === null) return (<><Header /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
+  if (ok === false) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><h1 className="h2">Admins only</h1><Link className="btn" href="/">Back to the site</Link></div></section><Footer /></>);
+  if (ok === null) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
 
   return (
     <>
-      <Header />
+      <PortalHeader kind="client" />
       <section className="sec"><div className="wrap">
         <PortalNav />
         <div className="row" style={{ marginTop: 0, justifyContent: "space-between", alignItems: "center" }}>

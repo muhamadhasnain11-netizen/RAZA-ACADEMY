@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Header, Footer } from "../../components/Chrome";
+import { PortalHeader, Footer } from "../../components/Chrome";
 import { PortalNav } from "../../components/PortalNav";
 import { supabase } from "../../lib/supabase";
 import { pct } from "../../lib/lessons";
@@ -15,7 +15,7 @@ export default function ClientHome() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) { router.replace("/login"); return; }
+      if (!data.user) { router.replace("/client/login"); return; }
       const a = await supabase.from("admins").select("email").maybeSingle();
       if (!a.data) { setOk(false); return; }
       setOk(true);
@@ -35,8 +35,8 @@ export default function ClientHome() {
     })();
   }, [router]);
 
-  if (ok === false) return (<><Header /><section className="sec"><div className="wrap"><h1 className="h2">Client portal</h1><div className="card"><p style={{ marginTop: 0 }}>This portal is for the academy owner and instructors. Ask the owner to add your email.</p><Link className="btn" href="/">Back to the site</Link></div></div></section><Footer /></>);
-  if (!s) return (<><Header /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
+  if (ok === false) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><h1 className="h2">Client portal</h1><div className="card"><p style={{ marginTop: 0 }}>This portal is for the academy owner and instructors. Ask the owner to add your email.</p><Link className="btn" href="/">Back to the site</Link></div></div></section><Footer /></>);
+  if (!s) return (<><PortalHeader kind="client" /><section className="sec"><div className="wrap"><p>Loading...</p></div></section></>);
 
   const stats = [
     [s.students, "Students"], [s.bookings, "New booking requests"], [s.week, "Tests taken this week"],
@@ -49,7 +49,7 @@ export default function ClientHome() {
   ];
   return (
     <>
-      <Header />
+      <PortalHeader kind="client" />
       <section className="sec"><div className="wrap">
         <PortalNav />
         <div className="stats">
