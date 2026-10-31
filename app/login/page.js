@@ -22,7 +22,7 @@ export default function Login() {
     setBusy(false);
     if (error) setMsg(error.message);
     else if (mode === "signup" && !data.session) setMsg("Check your email to confirm your account, then log in.");
-    else router.push("/dashboard");
+    else { const a = await supabase.from("admins").select("email").maybeSingle(); router.push(a.data ? "/client" : "/student"); }
   };
 
   return (
