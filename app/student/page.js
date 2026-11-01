@@ -17,6 +17,7 @@ export default function StudentPortal() {
   const router = useRouter();
   const [d, setD] = useState(null);
   const [tab, setTab] = useState("lessons");
+  const [dateDraft, setDateDraft] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -27,20 +28,26 @@ export default function StudentPortal() {
         supabase.from("results").select("*").eq("user_id", id).order("taken_at", { ascending: false }),
         supabase.from("class_logs").select("*").eq("student_id", id).order("taken_on", { ascending: false }),
         supabase.from("lesson_progress").select("lesson").eq("student_id", id),
-        supabase.from("profiles").select("full_name").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("full_name, test_date").eq("id", id).maybeSingle(),
         supabase.from("sessions").select("*, classes(name)").gte("starts_at", new Date().toISOString()).order("starts_at").limit(5),
       ]);
-      setD({ upcoming: s.data || [], user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "" });
+      setD({ upcoming: s.data || [], user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "", testDate: p.data ? p.data.test_date : null });
     })();
   }, [router]);
 
+  const saveDate = async () => {
+    await supabase.from("profiles").update({ test_date: dateDraft || null }).eq("id", d.user.id);
+    setD({ ...d, testDate: dateDraft || null });
+  };
   const logout = async () => { await supabase.auth.signOut(); router.push("/"); };
   if (!d) return (<><PortalHeader kind="student" /><section className="sec"><div className="wrap"><p>Loading your portal...</p></div></section></>);
 
-  const { user, results, logs, done, name, upcoming } = d;
+  const { user, results, logs, done, name, upcoming, testDate } = d;
   const cur = currentLesson(done);
+  const daysLeft = testDate ? Math.round((new Date(testDate + "T00:00:00") - new Date(new Date().toDateString())) / 864e5) : null;
   const best = results.length ? Math.max(...results.map(pct)) : 0;
   const topics = topicTotals(results);
+  const weak = topics.filter((t) => t.pct < 86).slice(0, 3).map((t) => t.name);
   const g = summary({ results, logs, done });
   const ready = readiness(results);
   const tiles = [[ClipboardCheck, results.length, "Tests taken"], [Target, best + "%", "Best score"], [Car, logs.length, "Classes taken"], [BookOpen, `${done.size}/${LESSONS.length}`, "Lessons done"]];
@@ -76,9 +83,18 @@ export default function StudentPortal() {
           <div className="meter"><i style={{ width: Math.round((done.size / LESSONS.length) * 100) + "%" }} /></div>
           <div className="row">
             <Link className="btn" href="/test"><ClipboardCheck size={18} aria-hidden="true" />Take a mock test</Link>
+            {weak.length > 0 && <Link className="btn ghost" href={"/test?topics=" + encodeURIComponent(weak.join("|"))}><Target size={18} aria-hidden="true" />Practise weak topics</Link>}
+            <Link className="btn ghost" href="/student/review"><BookOpen size={18} aria-hidden="true" />Review missed questions</Link>
             <Link className="btn ghost" href="/book"><CalendarCheck size={18} aria-hidden="true" />Book a session</Link>
             <button className="btn ghost" onClick={logout}><LogOut size={18} aria-hidden="true" />Log out</button>
           </div>
+        </div>
+
+        <div className="card" style={{ marginTop: 18 }}>
+          <p className="verdict" style={{ marginTop: 0 }}>Your theory test</p>
+          <p>{daysLeft === null ? "Add your test date to see a countdown." : daysLeft > 0 ? `${daysLeft} days to go until your test on ${fdate(testDate)}.` : daysLeft === 0 ? "Your test is today. Good luck!" : "Your test date has passed. Update it if you are re-booking."}</p>
+          <label>Test date<input type="date" value={dateDraft || testDate || ""} onChange={(e) => setDateDraft(e.target.value)} /></label>
+          <button className="btn" onClick={saveDate}>Save date</button>
         </div>
 
         {upcoming.length > 0 && (

@@ -79,6 +79,7 @@ export default function Students() {
             <div className="meter"><i style={{ width: Math.round((s.done.size / LESSONS.length) * 100) + "%" }} /></div>
             <p>{cur < 0 ? "All lessons complete." : `Current lesson ${cur + 1}: ${LESSONS[cur].title}`}</p>
             <p className="why" style={{ marginBottom: 0 }}>Level {g.level.index + 1}, {g.level.name}. {g.points} points, {g.streak.current} day streak, {g.earned.length} badges.</p>
+            {p.test_date && <p className="why" style={{ marginBottom: 0 }}>Theory test: {fdate(p.test_date)}</p>}
           </div>
 
           <h3 className="sub">Lessons (tick when done)</h3>

@@ -5,6 +5,7 @@ import { QUESTIONS, SECONDS_PER_Q, PASS_NUM, PASS_DEN } from "../../lib/question
 import { waLink } from "../../lib/config";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
+import { Share2 } from "lucide-react";
 
 const shuffle = (a) => {
   const b = [...a];
@@ -25,10 +26,16 @@ export default function TestPage() {
   const [left, setLeft] = useState(0);
   const [saved, setSaved] = useState("");
   const [bank, setBank] = useState(QUESTIONS);
+  const [focus, setFocus] = useState([]);
+
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("topics");
+    if (t) setFocus(t.split("|"));
+  }, []);
 
   useEffect(() => {
     supabase.from("questions").select("*").order("id").then(({ data }) => {
-      if (data && data.length) setBank(data.map((r) => ({ q: r.question, o: r.options, a: r.correct_index, e: r.explanation || "", t: r.topic || "General" })));
+      if (data && data.length) setBank(data.map((r) => ({ q: r.question, o: r.options, a: r.correct_index, e: r.explanation || "", t: r.topic || "General", id: r.id })));
     });
   }, []);
 
@@ -44,6 +51,7 @@ export default function TestPage() {
 
   useEffect(() => {
     if (phase !== "done") return;
+    if (focus.length) { setSaved("practice"); return; }
     const score = qs.filter((q, k) => pick[k] === q.a).length;
     const need = Math.ceil((qs.length * PASS_NUM) / PASS_DEN - 1e-9);
     const topics = {};
@@ -56,13 +64,14 @@ export default function TestPage() {
     (async () => {
       const { data } = await supabase.auth.getUser();
       if (!data.user) { setSaved("login"); return; }
-      const { error } = await supabase.from("results").insert({ user_id: data.user.id, score, total: qs.length, passed: score >= need, answers: topics });
+      const { error } = await supabase.from("results").insert({ user_id: data.user.id, score, total: qs.length, passed: score >= need, answers: { ...topics, _missed: qs.filter((q, k) => pick[k] !== q.a && q.id).map((q) => q.id) } });
       setSaved(error ? "error" : "saved");
     })();
   }, [phase]);
 
   const start = () => {
-    const s = shuffle(bank).slice(0, 50);
+    const focused = bank.filter((q) => focus.includes(q.t));
+    const s = shuffle(focus.length && focused.length >= 5 ? focused : bank).slice(0, 50);
     setQs(s); setI(0); setPick({}); setFlag({});
     setLeft(Math.round(s.length * SECONDS_PER_Q));
     setSaved(""); setPhase("run");
@@ -79,7 +88,7 @@ export default function TestPage() {
     body = (
       <div className="card">
         <p style={{ marginTop: 0 }}>
-          {Math.min(bank.length, 50)} practice questions, {Math.round((Math.min(bank.length, 50) * SECONDS_PER_Q) / 60)} minutes, same pace and 86% pass mark as the real test. You can flag questions and jump between them. Explanations show at the end.
+          {Math.min(bank.length, 50)} practice questions, {Math.round((Math.min(bank.length, 50) * SECONDS_PER_Q) / 60)} minutes, same pace and 86% pass mark as the real test. You can flag questions and jump between them. Explanations show at the end.{focus.length > 0 && <strong> Focused practice on: {focus.join(", ")}.</strong>}
         </p>
         <button className="btn" onClick={start}>Start the test</button>
       </div>
@@ -120,6 +129,12 @@ export default function TestPage() {
         <h3>{left <= 0 ? "Time\u2019s up. " : ""}You scored {score} out of {qs.length}</h3>
         <p className="verdict">{pass ? "Pass. You are above the 86% pass mark." : `Not yet. You need ${need} out of ${qs.length}, the same 86% as the real test.`}</p>
         {saved === "saved" && <p>Score saved to your progress.</p>}
+        {saved === "practice" && <p>Practice sessions are not counted in your mock test scores.</p>}
+        {pass && !focus.length && (
+          <div className="row" style={{ marginTop: 0, marginBottom: 12 }}>
+            <a className="btn ghost" target="_blank" rel="noopener noreferrer" href={"https://wa.me/?text=" + encodeURIComponent(`I just passed a mock theory test (${score} out of ${qs.length}) with Raza Theory & Driving Academy! Try it: ${window.location.origin}/test`)}><Share2 size={18} aria-hidden="true" />Share my pass</a>
+          </div>
+        )}
         {saved === "login" && <p><Link href="/student/login">Log in or create an account</Link> to save your scores and track your progress.</p>}
         {saved === "error" && <p>We could not save this score. Try again later.</p>}
         {qs.map((q, k) => {

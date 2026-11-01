@@ -127,3 +127,12 @@ textarea{min-height:84px}
 .btn:disabled:hover{transform:none;box-shadow:none;background:var(--red)}
 .portal-label{font:800 24px "Barlow Condensed","Arial Narrow",Impact,sans-serif;color:var(--red);text-transform:uppercase;margin-right:auto;margin-left:14px}
 @media (prefers-reduced-motion:reduce){.btn,.tab,.btn svg,.tab svg{transition:none}.btn:hover,.tab:hover,.btn:hover svg,.tab:hover svg{transform:none}}
+body{overflow-x:clip}
+:root{--dx:56px}
+@media(max-width:760px){:root{--dx:28px}}
+[data-reveal]:not(.in){opacity:0}
+[data-reveal].in{animation:revL .7s cubic-bezier(.22,.8,.3,1) var(--d,0ms) backwards}
+[data-reveal="r"].in{animation-name:revR}
+@keyframes revL{from{opacity:0;transform:translateX(calc(var(--dx) * -1))}to{opacity:1;transform:none}}
+@keyframes revR{from{opacity:0;transform:translateX(var(--dx))}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1!important;animation:none!important}}

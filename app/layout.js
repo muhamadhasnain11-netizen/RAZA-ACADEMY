@@ -1,4 +1,5 @@
 import "./globals.css";
+import { ScrollFX } from "../components/ScrollFX";
 
 export const metadata = {
   title: "Raza Theory & Driving Academy",
@@ -12,7 +13,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@700;800&display=swap" />
       </head>
-      <body>{children}</body>
+      <body>{children}<ScrollFX /></body>
     </html>
   );
 }
