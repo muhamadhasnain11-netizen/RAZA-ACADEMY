@@ -18,6 +18,8 @@ export default function StudentPortal() {
   const [d, setD] = useState(null);
   const [tab, setTab] = useState("lessons");
   const [dateDraft, setDateDraft] = useState("");
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [phoneMsg, setPhoneMsg] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -28,10 +30,10 @@ export default function StudentPortal() {
         supabase.from("results").select("*").eq("user_id", id).order("taken_at", { ascending: false }),
         supabase.from("class_logs").select("*").eq("student_id", id).order("taken_on", { ascending: false }),
         supabase.from("lesson_progress").select("lesson").eq("student_id", id),
-        supabase.from("profiles").select("full_name, test_date").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("full_name, test_date, phone").eq("id", id).maybeSingle(),
         supabase.from("sessions").select("*, classes(name)").gte("starts_at", new Date().toISOString()).order("starts_at").limit(5),
       ]);
-      setD({ upcoming: s.data || [], user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "", testDate: p.data ? p.data.test_date : null });
+      setD({ upcoming: s.data || [], user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "", testDate: p.data ? p.data.test_date : null, phone: p.data ? p.data.phone : "" });
     })();
   }, [router]);
 
@@ -39,10 +41,14 @@ export default function StudentPortal() {
     await supabase.from("profiles").update({ test_date: dateDraft || null }).eq("id", d.user.id);
     setD({ ...d, testDate: dateDraft || null });
   };
+  const savePhone = async () => {
+    const { error } = await supabase.from("profiles").update({ phone: phoneDraft }).eq("id", d.user.id);
+    setPhoneMsg(error ? "Could not save. Try again." : "Saved."); if (!error) setD({ ...d, phone: phoneDraft });
+  };
   const logout = async () => { await supabase.auth.signOut(); router.push("/"); };
   if (!d) return (<><PortalHeader kind="student" /><section className="sec"><div className="wrap"><p>Loading your portal...</p></div></section></>);
 
-  const { user, results, logs, done, name, upcoming, testDate } = d;
+  const { user, results, logs, done, name, upcoming, testDate, phone } = d;
   const cur = currentLesson(done);
   const daysLeft = testDate ? Math.round((new Date(testDate + "T00:00:00") - new Date(new Date().toDateString())) / 864e5) : null;
   const best = results.length ? Math.max(...results.map(pct)) : 0;
@@ -95,6 +101,13 @@ export default function StudentPortal() {
           <p>{daysLeft === null ? "Add your test date to see a countdown." : daysLeft > 0 ? `${daysLeft} days to go until your test on ${fdate(testDate)}.` : daysLeft === 0 ? "Your test is today. Good luck!" : "Your test date has passed. Update it if you are re-booking."}</p>
           <label>Test date<input type="date" value={dateDraft || testDate || ""} onChange={(e) => setDateDraft(e.target.value)} /></label>
           <button className="btn" onClick={saveDate}>Save date</button>
+        </div>
+
+        <div className="card" style={{ marginTop: 18 }}>
+          <p className="verdict" style={{ marginTop: 0 }}>Your contact number</p>
+          <label>Phone number (WhatsApp)<input type="tel" value={phoneDraft || phone || ""} onChange={(e) => setPhoneDraft(e.target.value)} /></label>
+          {phoneMsg && <p className="why" role="status">{phoneMsg}</p>}
+          <button className="btn" onClick={savePhone}>Save number</button>
         </div>
 
         {upcoming.length > 0 && (

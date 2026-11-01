@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PortalHeader, Footer } from "../../../components/Chrome";
 import { PortalNav } from "../../../components/PortalNav";
@@ -73,6 +74,7 @@ export default function Students() {
           <PortalNav />
           <button className="btn ghost" onClick={() => { setSel(null); setMsg(""); }}>All students</button>
           <h1 className="h2" style={{ marginTop: 18 }}>{nm(p)}</h1>
+          <button className="btn ghost" onClick={() => window.print()}><Printer size={18} aria-hidden="true" />Print progress report</button>
           <div className="card">
             <p style={{ marginTop: 0 }}>{p.email}, joined {fdate(p.created_at)}</p>
             <p className="verdict">{s.rs.length} tests taken, best {s.best}%, {s.rs.filter((r) => r.passed).length} passed. {s.lg.length} classes taken, {s.done.size} of {LESSONS.length} lessons done.</p>

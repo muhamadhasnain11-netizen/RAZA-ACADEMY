@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Header, Footer } from "./Chrome";
 import { supabase } from "../lib/supabase";
 
@@ -10,6 +11,7 @@ export function LoginForm({ kind }) {
   const router = useRouter();
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
@@ -31,7 +33,7 @@ export function LoginForm({ kind }) {
   const submit = async (e) => {
     e.preventDefault(); setBusy(true); setMsg("");
     const { data, error } = mode === "signup"
-      ? await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } })
+      ? await supabase.auth.signUp({ email, password, options: { data: { full_name: name, phone } } })
       : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) setMsg(error.message);
@@ -45,7 +47,11 @@ export function LoginForm({ kind }) {
       <section className="sec"><div className="wrap">
         <h1 className="h2">{mode === "signup" ? "Create your account" : TITLES[kind]}</h1>
         <form className="card" onSubmit={submit}>
-          {mode === "signup" && <label>Your name<input required value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></label>}
+          {mode === "signup" && (<>
+            <label>Your name<input required value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></label>
+            <label>Phone number (WhatsApp)<input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" /></label>
+            <p className="why">By creating an account you agree to our <Link href="/privacy">privacy policy</Link>.</p>
+          </>)}
           <label>Email<input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" /></label>
           <label>Password<input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>
           {msg && <p className="verdict" role="alert">{msg}</p>}

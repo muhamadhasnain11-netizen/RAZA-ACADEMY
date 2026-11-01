@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, CalendarCheck, FileQuestion, Trophy, LogOut, UserCog, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Users, CalendarCheck, FileQuestion, Trophy, LogOut, UserCog, CalendarDays, CalendarRange, PoundSterling } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 const TABS = [
@@ -9,7 +9,9 @@ const TABS = [
   ["/client/students", "Students", Users],
   ["/client/teachers", "Teachers", UserCog],
   ["/client/classes", "Classes", CalendarDays],
+  ["/client/calendar", "Calendar", CalendarRange],
   ["/client/bookings", "Bookings", CalendarCheck],
+  ["/client/income", "Income", PoundSterling],
   ["/client/questions", "Question bank", FileQuestion],
   ["/client/leaderboard", "Leaderboard", Trophy],
 ];

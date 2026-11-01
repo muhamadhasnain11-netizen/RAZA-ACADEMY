@@ -46,6 +46,7 @@ export default function Book() {
             <label>Preferred date and time<input required type="datetime-local" value={f.time} onChange={set("time")} /></label>
             <label>Anything we should know? (optional)<textarea value={f.note} onChange={set("note")} /></label>
             <input className="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" value={f.website} onChange={set("website")} />
+            <p className="why">We only use these details to contact you about your booking. See our <a href="/privacy">privacy policy</a>.</p>
             {err && <p className="verdict" role="alert">{err}</p>}
             <button className="btn" disabled={state === "busy"}>{state === "busy" ? "Sending..." : "Send booking request"}</button>
           </form>

@@ -22,7 +22,7 @@ export function Footer() {
       <div className="wrap">
         {BRAND}, {PHONE_DISPLAY}<br />
         Questions are original practice questions, not official DVSA ones.<br />
-        <Link href="/teacher/login">Teacher login</Link> | <Link href="/client/login">Client login</Link>
+        <Link href="/privacy">Privacy policy</Link> | <Link href="/teacher/login">Teacher login</Link> | <Link href="/client/login">Client login</Link>
       </div>
     </footer>
   );

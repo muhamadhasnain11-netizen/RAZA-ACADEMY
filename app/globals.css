@@ -136,3 +136,9 @@ body{overflow-x:clip}
 @keyframes revL{from{opacity:0;transform:translateX(calc(var(--dx) * -1))}to{opacity:1;transform:none}}
 @keyframes revR{from{opacity:0;transform:translateX(var(--dx))}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1!important;animation:none!important}}
+.week{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.day{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.day h4{margin:0 0 8px;font:800 22px "Barlow Condensed","Arial Narrow",Impact,sans-serif;text-transform:uppercase}
+.slot{background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:15px}
+.slot.ok{border-left-color:var(--ok)}.slot.bad{border-left-color:var(--bad)}
+@media print{header,footer,.portalbar,.btn,.tab,form{display:none!important}[data-reveal]{opacity:1!important;animation:none!important;transform:none!important}.card,.rev,.stat{box-shadow:none;break-inside:avoid}.meter{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
