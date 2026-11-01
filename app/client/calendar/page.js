@@ -58,7 +58,7 @@ export default function Calendar() {
                       <span className="why">{t ? t.name : ""}{s.lesson_title ? ", " + s.lesson_title : ""}</span><br />
                       <span className="why">{s.checked_in_at ? "Checked in" : missed ? "Missed" : "Scheduled"}</span>
                       <div style={{ marginTop: 6 }}>
-                        <button className="tab" style={{ minHeight: 32, padding: "2px 10px" }} onClick={() => setOpen(open === s.id ? null : s.id)}>Reminders</button>
+                        <button className="tab" style={{ minHeight: 32, padding: "2px 10px" }} onClick={() => setOpen(open === s.id ? null : s.id)}>Reminders</button>{" "}<Link className="tab" style={{ minHeight: 32, padding: "2px 10px" }} href={"/classroom/" + s.id}>Join</Link>
                       </div>
                       {open === s.id && (
                         <div style={{ marginTop: 6 }}>

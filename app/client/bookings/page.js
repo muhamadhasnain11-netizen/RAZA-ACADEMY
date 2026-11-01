@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PortalHeader, Footer } from "../../../components/Chrome";
 import { PortalNav } from "../../../components/PortalNav";
 import { supabase } from "../../../lib/supabase";
+import { payLinkFor } from "../../../lib/config";
 
 const waNum = (p) => { const d = p.replace(/\D/g, ""); return d.startsWith("0") ? "44" + d.slice(1) : d; };
 
@@ -83,7 +84,7 @@ export default function Admin() {
             <p>{b.preferred_time.replace("T", " ")}, phone {b.phone}{b.email ? ", " + b.email : ""}</p>
             {b.note && <p className="why">{b.note}</p>}
             <div className="row" style={{ marginTop: 6 }}>
-              <a className="btn" target="_blank" rel="noopener noreferrer" href={`https://wa.me/${waNum(b.phone)}?text=${encodeURIComponent(`Hi ${b.name}, this is Raza Theory & Driving Academy about your ${b.session_type} request.`)}`}>Reply on WhatsApp</a>
+              <a className="btn" target="_blank" rel="noopener noreferrer" href={`https://wa.me/${waNum(b.phone)}?text=${encodeURIComponent(`Hi ${b.name}, this is Raza Theory & Driving Academy about your ${b.session_type} request.${payLinkFor(b.session_type) ? " You can pay securely here: " + payLinkFor(b.session_type) : ""}`)}`}>Reply on WhatsApp</a>
               {b.status !== "confirmed" && <button className="btn ghost" onClick={() => setStatus(b, "confirmed")}>Mark confirmed</button>}
               <button className="btn ghost" onClick={() => delBk(b)}>Delete</button>
             </div>

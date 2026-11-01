@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ClipboardCheck, Users, History, LogOut } from "lucide-react";
+import { ClipboardCheck, Users, History, LogOut, Video } from "lucide-react";
 import { PortalHeader, Footer } from "../../components/Chrome";
 import { supabase } from "../../lib/supabase";
 import { useGuard } from "../../lib/useGuard";
@@ -88,6 +88,7 @@ export default function TeacherPortal() {
                 </>)}
                 {s.checked_in_at && (<>
                   <p className="verdict">Checked in {timeUK(s.checked_in_at)}. Lesson: {s.lesson_title}</p>
+                  {!s.checked_out_at && <Link className="btn" href={"/classroom/" + s.id}><Video size={18} aria-hidden="true" />Join video class</Link>}
                   <p style={{ fontWeight: 600, marginBottom: 4 }}>Who attended?</p>
                   {members.length === 0 && <p>No students are enrolled in this class yet.</p>}
                   {members.map((m) => {

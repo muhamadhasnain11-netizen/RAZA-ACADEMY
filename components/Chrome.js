@@ -29,7 +29,7 @@ export function Footer() {
 }
 
 export function PortalHeader({ kind }) {
-  const label = { student: "Student portal", teacher: "Teacher portal", client: "Client portal" }[kind];
+  const label = { student: "Student portal", teacher: "Teacher portal", client: "Client portal", class: "Live class" }[kind];
   return (
     <header>
       <div className="wrap bar">

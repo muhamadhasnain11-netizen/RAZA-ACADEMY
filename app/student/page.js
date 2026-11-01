@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trophy, Flame, Award, ClipboardCheck, Target, Car, BookOpen, BarChart3, ClipboardList, LogOut, CalendarCheck } from "lucide-react";
+import { Trophy, Flame, Award, ClipboardCheck, Target, Car, BookOpen, BarChart3, ClipboardList, LogOut, CalendarCheck, Video } from "lucide-react";
 import { PortalHeader, Footer } from "../../components/Chrome";
 import { fmtUK } from "../../lib/time";
 import { Ring } from "../../components/Ring";
 import { BadgeGrid } from "../../components/Badges";
+import { RecordingButton } from "../../components/RecordingButton";
 import { supabase } from "../../lib/supabase";
 import { LESSONS, pct, currentLesson, fdate, topicTotals } from "../../lib/lessons";
 import { BADGES, summary, readiness } from "../../lib/game";
@@ -31,7 +32,7 @@ export default function StudentPortal() {
         supabase.from("class_logs").select("*").eq("student_id", id).order("taken_on", { ascending: false }),
         supabase.from("lesson_progress").select("lesson").eq("student_id", id),
         supabase.from("profiles").select("full_name, test_date, phone").eq("id", id).maybeSingle(),
-        supabase.from("sessions").select("*, classes(name)").gte("starts_at", new Date().toISOString()).order("starts_at").limit(5),
+        supabase.from("sessions").select("*, classes(name)").gte("starts_at", new Date(Date.now() - 4 * 36e5).toISOString()).is("checked_out_at", null).order("starts_at").limit(5),
       ]);
       setD({ upcoming: s.data || [], user: data.user, results: r.data || [], logs: c.data || [], done: new Set((l.data || []).map((x) => x.lesson)), name: p.data ? p.data.full_name : "", testDate: p.data ? p.data.test_date : null, phone: p.data ? p.data.phone : "" });
     })();
@@ -113,7 +114,9 @@ export default function StudentPortal() {
         {upcoming.length > 0 && (
           <div className="card" style={{ marginTop: 18 }}>
             <p className="verdict" style={{ marginTop: 0 }}>Upcoming classes (UK time)</p>
-            {upcoming.map((u) => <p key={u.id} style={{ margin: "4px 0" }}>{fmtUK(u.starts_at)}, {u.classes ? u.classes.name : "Class"}{u.lesson_title ? ", " + u.lesson_title : ""}</p>)}
+            {upcoming.map((u) => (
+              <p key={u.id} style={{ margin: "6px 0" }}>{fmtUK(u.starts_at)}, {u.classes ? u.classes.name : "Class"}{u.lesson_title ? ", " + u.lesson_title : ""}{new Date(u.starts_at) - Date.now() < 20 * 60e3 && <>{" "}<Link className="btn" style={{ minHeight: 36, padding: "4px 14px" }} href={"/classroom/" + u.id}><Video size={16} aria-hidden="true" />Join class</Link></>}</p>
+            ))}
           </div>
         )}
 
@@ -134,6 +137,7 @@ export default function StudentPortal() {
             <div key={c.id} className="rev ok">
               <p style={{ fontWeight: 600 }}>{fdate(c.taken_on)}, {c.lesson || "Class"}</p>
               {c.note && <p className="why">{c.note}</p>}
+              {c.session_id && <RecordingButton sessionId={c.session_id} />}
             </div>
           ))}
         </>)}
