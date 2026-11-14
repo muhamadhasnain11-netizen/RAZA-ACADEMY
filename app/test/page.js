@@ -6,6 +6,7 @@ import { waLink } from "../../lib/config";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import { Share2 } from "lucide-react";
+import DrawingTool from "../../components/DrawingTool";
 
 const shuffle = (a) => {
   const b = [...a];
@@ -15,6 +16,28 @@ const shuffle = (a) => {
   }
   return b;
 };
+const BG_CSS = `
+.mt-bg{position:relative;overflow:hidden;padding-bottom:140px;
+  background:
+    radial-gradient(circle at 85% 8%, rgba(255,255,255,.22), transparent 38%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 26px),
+    linear-gradient(160deg,#c4001d 0%,#e11d2e 55%,#8a0014 100%);}
+.mt-bg::after{content:"";position:absolute;left:0;right:0;bottom:0;height:84px;
+  background:
+    repeating-linear-gradient(90deg,#fff 0 46px,transparent 46px 92px) center/100% 5px no-repeat,
+    #262626;
+  border-top:6px solid #fff;}
+.mt-bg .wrap{position:relative;z-index:1}
+.mt-bg .h2{color:#fff}
+.mt-bg .card{background:#fff;color:#111;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.mt-bg[data-phase="run"]{
+  background:
+    repeating-linear-gradient(135deg, rgba(225,29,46,.05) 0 2px, transparent 2px 26px),
+    linear-gradient(180deg,#fdf1f2 0%,#ffffff 100%);}
+.mt-bg[data-phase="run"]::after{opacity:.35}
+.mt-bg[data-phase="run"] .h2{color:#8a0014}
+.mt-bg[data-phase="run"] .card{box-shadow:0 8px 24px rgba(138,0,20,.12)}
+`;
 const fmt = (s) => `${Math.floor(Math.max(s, 0) / 60)}:${String(Math.max(s, 0) % 60).padStart(2, "0")}`;
 
 export default function TestPage() {
@@ -159,7 +182,9 @@ export default function TestPage() {
   return (
     <>
       <Header />
-      <section className="sec"><div className="wrap"><h1 className="h2">Free mock test</h1>{body}</div></section>
+      <style>{BG_CSS}</style>
+      <section className="sec mt-bg" data-phase={phase}><div className="wrap"><h1 className="h2">Free mock test</h1>{body}</div></section>
+      <DrawingTool />
       <Footer />
     </>
   );
