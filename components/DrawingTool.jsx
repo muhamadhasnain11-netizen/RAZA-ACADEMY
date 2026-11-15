@@ -130,6 +130,7 @@ export default function DrawingTool() {
   const [sticker, setSticker] = useState('stop');
   const [color, setColor] = useState(COLORS[0]);
   const [size, setSize] = useState(5);
+  const [side, setSide] = useState('right');
 
   const redraw = useCallback(() => {
     const c = canvasRef.current;
@@ -216,6 +217,11 @@ export default function DrawingTool() {
     ['line', 'Line'], ['arrow', 'Arrow'], ['circle', 'Circle'], ['rect', 'Box'],
   ];
 
+  const pill = {
+    padding: '7px 12px', borderRadius: 999, fontSize: 13, cursor: 'pointer',
+    border: '1px solid #d1d5db', background: '#fff', color: '#111', fontWeight: 600,
+  };
+
   return (
     <>
       <canvas
@@ -230,11 +236,15 @@ export default function DrawingTool() {
           cursor: drawing ? 'crosshair' : 'default',
         }}
       />
-      <div style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 9999, fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{
+        position: 'fixed', [side]: 16, bottom: side === 'left' ? 76 : 16, zIndex: 9999,
+        fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column',
+        alignItems: side === 'right' ? 'flex-end' : 'flex-start', gap: 10,
+      }}>
         {open && (
           <div style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 12,
-            width: 300, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 10px 30px rgba(0,0,0,.25)', marginBottom: 10,
+            width: 300, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 10px 30px rgba(0,0,0,.25)',
           }}>
             <button
               onClick={() => setDrawing((d) => !d)}
@@ -265,23 +275,40 @@ export default function DrawingTool() {
                   onClick={() => { setTool('sticker'); setSticker(k); setDrawing(true); }}>{label}</button>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
               <button style={btn(false)} onClick={undo}>Undo</button>
               <button style={btn(false)} onClick={clearAll}>Clear all</button>
-              <button style={{ ...btn(false), marginLeft: 'auto' }} onClick={() => { setDrawing(false); setOpen(false); }}>Close</button>
+              <button style={{ ...btn(false), marginLeft: 'auto' }} onClick={() => setSide((x) => (x === 'right' ? 'left' : 'right'))}>
+                Move {side === 'right' ? 'left' : 'right'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button style={{ ...btn(false), flex: 1, background: '#111', color: '#fff', border: 'none' }} onClick={() => setOpen(false)}>
+                Minimize (keep drawing)
+              </button>
+              <button style={btn(false)} onClick={() => { setDrawing(false); setOpen(false); }}>Done</button>
             </div>
           </div>
         )}
-        <button
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Drawing pen"
-          style={{
-            width: 54, height: 54, borderRadius: '50%', border: '3px solid #fff', cursor: 'pointer',
-            background: '#e11d2e', color: '#fff', fontSize: 24, boxShadow: '0 6px 18px rgba(0,0,0,.35)', float: 'right',
-          }}
-        >
-          ✏️
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: side === 'right' ? 'row' : 'row-reverse' }}>
+          {!open && drawing && (
+            <div style={{ display: 'flex', gap: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 999, padding: 6, boxShadow: '0 6px 18px rgba(0,0,0,.25)' }}>
+              <button style={pill} onClick={() => setDrawing(false)}>Stop drawing</button>
+              <button style={pill} onClick={undo}>Undo</button>
+              <button style={pill} onClick={clearAll}>Clear</button>
+            </div>
+          )}
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Drawing pen"
+            style={{
+              width: 54, height: 54, borderRadius: '50%', border: drawing ? '3px solid #111' : '3px solid #fff', cursor: 'pointer',
+              background: '#e11d2e', color: '#fff', fontSize: 24, boxShadow: '0 6px 18px rgba(0,0,0,.35)',
+            }}
+          >
+            ✏️
+          </button>
+        </div>
       </div>
     </>
   );
