@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header, Footer } from "../../components/Chrome";
 import { QUESTIONS, SECONDS_PER_Q, PASS_NUM, PASS_DEN } from "../../lib/questions";
 import { waLink } from "../../lib/config";
@@ -16,29 +16,110 @@ const shuffle = (a) => {
   }
   return b;
 };
-const BG_CSS = `
-.mt-bg{position:relative;overflow:hidden;padding-bottom:140px;
-  background:
-    radial-gradient(circle at 85% 8%, rgba(255,255,255,.22), transparent 38%),
-    repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 26px),
-    linear-gradient(160deg,#c4001d 0%,#e11d2e 55%,#8a0014 100%);}
-.mt-bg::after{content:"";position:absolute;left:0;right:0;bottom:0;height:84px;
-  background:
-    repeating-linear-gradient(90deg,#fff 0 46px,transparent 46px 92px) center/100% 5px no-repeat,
-    #262626;
-  border-top:6px solid #fff;}
-.mt-bg .wrap{position:relative;z-index:1}
-.mt-bg .h2{color:#fff}
-.mt-bg .card{background:#fff;color:#111;box-shadow:0 14px 40px rgba(0,0,0,.25)}
-.mt-bg[data-phase="run"]{
-  background:
-    repeating-linear-gradient(135deg, rgba(225,29,46,.05) 0 2px, transparent 2px 26px),
-    linear-gradient(180deg,#fdf1f2 0%,#ffffff 100%);}
-.mt-bg[data-phase="run"]::after{opacity:.35}
-.mt-bg[data-phase="run"] .h2{color:#8a0014}
-.mt-bg[data-phase="run"] .card{box-shadow:0 8px 24px rgba(138,0,20,.12)}
-`;
 const fmt = (s) => `${Math.floor(Math.max(s, 0) / 60)}:${String(Math.max(s, 0) % 60).padStart(2, "0")}`;
+
+const BG_CSS = `
+.mt-bg{position:relative;overflow:hidden;padding-bottom:60px;background:linear-gradient(180deg,#ffffff 0%,#f4f4f4 100%)}
+.mt-bg .wrap{position:relative;z-index:1}
+.mt-rib{position:absolute;pointer-events:none;z-index:0;width:min(34vw,520px);height:min(34vw,520px)}
+.mt-rib.tr{top:0;right:0}
+.mt-rib.bl{bottom:0;left:0;transform:rotate(180deg)}
+.mt-wm{position:absolute;pointer-events:none;z-index:0;right:2%;top:150px;width:min(30vw,520px);opacity:.22}
+.mt-bg .h2{color:#8a0014}
+.mt-bg .card{background:rgba(255,255,255,.96);color:#111;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.mt-logobar{display:flex;justify-content:center;margin:0 0 14px}
+.mt-logobar img{height:84px;width:auto}
+.mt-rec{position:fixed;left:16px;bottom:16px;z-index:9999;display:flex;align-items:center;gap:8px;font-family:system-ui,sans-serif}
+.mt-rec button{cursor:pointer;border:none;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;color:#fff;background:#111;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.mt-rec button.on{background:#e11d2e}
+.mt-rec .dot{width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block;margin-right:8px;animation:mtp 1s infinite}
+.mt-rec .msg{background:#fff;color:#8a0014;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid #ecd2d4;max-width:260px}
+@keyframes mtp{50%{opacity:.25}}
+@media (max-width:1000px){.mt-wm{right:50%;transform:translateX(50%);opacity:.08;width:80vw}}
+`;
+
+const Ribbon = ({ cls }) => (
+  <svg className={"mt-rib " + cls} viewBox="0 0 400 400" aria-hidden="true">
+    <defs><linearGradient id={"rg" + cls} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#c40018" /><stop offset="1" stopColor="#ff1a1a" /></linearGradient></defs>
+    <path d="M110 0 L215 0 C300 80 360 190 400 330 L400 400 C375 290 320 190 235 115 C195 80 150 40 110 0 Z" fill={"url(#rg" + cls + ")"} />
+  </svg>
+);
+
+const LogoBar = () => (<div className="mt-logobar"><img src="/raza-logo.png" alt="Raza Theory and Driving Academy" /></div>);
+
+function Recorder() {
+  const [on, setOn] = useState(false);
+  const [secs, setSecs] = useState(0);
+  const [msg, setMsg] = useState("");
+  const rec = useRef(null);
+  const parts = useRef([]);
+  const streams = useRef([]);
+  const ctxRef = useRef(null);
+  const timer = useRef(null);
+
+  const stop = () => { if (rec.current && rec.current.state !== "inactive") rec.current.stop(); };
+
+  const start = async () => {
+    setMsg("");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia || typeof MediaRecorder === "undefined") {
+      setMsg("Screen recording works on a computer in Chrome or Edge.");
+      return;
+    }
+    try {
+      const screen = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+      let mic = null;
+      try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+      catch (e) { setMsg("Microphone blocked. Recording the screen without your voice."); }
+      streams.current = [screen, mic].filter(Boolean);
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC();
+      ctxRef.current = ctx;
+      const dest = ctx.createMediaStreamDestination();
+      [screen, mic].forEach((st) => {
+        if (st && st.getAudioTracks().length) ctx.createMediaStreamSource(new MediaStream(st.getAudioTracks())).connect(dest);
+      });
+      const out = new MediaStream([...screen.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+      const mime = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find((t) => MediaRecorder.isTypeSupported(t));
+      const r = new MediaRecorder(out, mime ? { mimeType: mime } : undefined);
+      parts.current = [];
+      r.ondataavailable = (e) => { if (e.data && e.data.size) parts.current.push(e.data); };
+      r.onstop = () => {
+        clearInterval(timer.current);
+        streams.current.forEach((st) => st.getTracks().forEach((t) => t.stop()));
+        if (ctxRef.current) ctxRef.current.close();
+        const blob = new Blob(parts.current, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        a.href = url;
+        a.download = `raza-mock-test-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.webm`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        setOn(false); setSecs(0);
+      };
+      screen.getVideoTracks()[0].addEventListener("ended", stop);
+      r.start(1000);
+      rec.current = r;
+      setOn(true); setSecs(0);
+      timer.current = setInterval(() => setSecs((x) => x + 1), 1000);
+    } catch (e) {
+      setMsg("Recording was cancelled or blocked.");
+    }
+  };
+
+  useEffect(() => () => { clearInterval(timer.current); }, []);
+
+  return (
+    <div className="mt-rec">
+      {on
+        ? <button className="on" onClick={stop}><span className="dot" />Stop {fmt(secs)}</button>
+        : <button onClick={start}>Record screen and voice</button>}
+      {msg && <span className="msg" role="status">{msg}</span>}
+    </div>
+  );
+}
+
 
 export default function TestPage() {
   const [phase, setPhase] = useState("intro");
@@ -110,6 +191,7 @@ export default function TestPage() {
   if (phase === "intro") {
     body = (
       <div className="card">
+        <LogoBar />
         <p style={{ marginTop: 0 }}>
           {Math.min(bank.length, 50)} practice questions, {Math.round((Math.min(bank.length, 50) * SECONDS_PER_Q) / 60)} minutes, same pace and 86% pass mark as the real test. You can flag questions and jump between them. Explanations show at the end.{focus.length > 0 && <strong> Focused practice on: {focus.join(", ")}.</strong>}
         </p>
@@ -120,6 +202,7 @@ export default function TestPage() {
     const q = qs[i];
     body = (
       <div className="card">
+        <LogoBar />
         <div className="top">
           <span>Question {i + 1} of {qs.length}</span>
           <span className="clock">{fmt(left)}</span>
@@ -149,6 +232,7 @@ export default function TestPage() {
     const pass = score >= need;
     body = (
       <div className="card">
+        <LogoBar />
         <h3>{left <= 0 ? "Time\u2019s up. " : ""}You scored {score} out of {qs.length}</h3>
         <p className="verdict">{pass ? "Pass. You are above the 86% pass mark." : `Not yet. You need ${need} out of ${qs.length}, the same 86% as the real test.`}</p>
         {saved === "saved" && <p>Score saved to your progress.</p>}
@@ -183,7 +267,12 @@ export default function TestPage() {
     <>
       <Header />
       <style>{BG_CSS}</style>
-      <section className="sec mt-bg" data-phase={phase}><div className="wrap"><h1 className="h2">Free mock test</h1>{body}</div></section>
+      <section className="sec mt-bg">
+        <Ribbon cls="tr" /><Ribbon cls="bl" />
+        <img className="mt-wm" src="/raza-logo.png" alt="" aria-hidden="true" />
+        <div className="wrap"><h1 className="h2">Free mock test</h1>{body}</div>
+      </section>
+      <Recorder />
       <DrawingTool />
       <Footer />
     </>
